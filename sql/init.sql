@@ -1,0 +1,67 @@
+CREATE TABLE IF NOT EXISTS ozon_orders (
+    id SERIAL PRIMARY KEY,
+    posting_number VARCHAR(50) NOT NULL UNIQUE,
+    order_id BIGINT,
+    order_number VARCHAR(50),
+    posting_type VARCHAR(10) NOT NULL,
+    status VARCHAR(50),
+    substatus VARCHAR(100),
+    cancel_reason_id INTEGER,
+    created_at TIMESTAMPTZ,
+    in_process_at TIMESTAMPTZ,
+    shipment_date TIMESTAMPTZ,
+    delivering_date TIMESTAMPTZ,
+    warehouse_id BIGINT,
+    warehouse_name VARCHAR(255),
+    tracking_number VARCHAR(100),
+    tpl_integration_type VARCHAR(50),
+    delivery_method_id BIGINT,
+    delivery_method_name VARCHAR(255),
+    customer_city VARCHAR(255),
+    customer_region VARCHAR(255),
+    financial_data JSONB,
+    analytics_data JSONB,
+    raw_data JSONB,
+    synced_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS ozon_order_products (
+    id SERIAL PRIMARY KEY,
+    posting_number VARCHAR(50) NOT NULL REFERENCES ozon_orders(posting_number) ON DELETE CASCADE,
+    sku BIGINT NOT NULL,
+    name VARCHAR(500),
+    offer_id VARCHAR(255),
+    quantity INTEGER DEFAULT 0,
+    price NUMERIC(15, 2) DEFAULT 0,
+    currency_code VARCHAR(10),
+    commission_amount NUMERIC(15, 2),
+    commission_percent NUMERIC(8, 4),
+    payout NUMERIC(15, 2),
+    product_id BIGINT,
+    mandatory_mark TEXT[],
+    dimensions_height NUMERIC(10, 2),
+    dimensions_length NUMERIC(10, 2),
+    dimensions_width NUMERIC(10, 2),
+    dimensions_weight NUMERIC(10, 2),
+    UNIQUE(posting_number, sku)
+);
+
+CREATE TABLE IF NOT EXISTS ozon_sync_log (
+    id SERIAL PRIMARY KEY,
+    job_start TIMESTAMPTZ NOT NULL,
+    job_end TIMESTAMPTZ,
+    status VARCHAR(50) DEFAULT 'running',
+    posting_type VARCHAR(10),
+    date_from DATE,
+    date_to DATE,
+    orders_fetched INTEGER DEFAULT 0,
+    orders_inserted INTEGER DEFAULT 0,
+    orders_updated INTEGER DEFAULT 0,
+    products_count INTEGER DEFAULT 0,
+    http_requests INTEGER DEFAULT 0,
+    retries INTEGER DEFAULT 0,
+    error_message TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
